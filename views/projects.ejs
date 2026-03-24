@@ -1,0 +1,52 @@
+<h1><%= heading || "Projects" %></h1>
+
+<p class="projects-intro">
+  A few selected projects from the BCIT SSD program, reflecting coursework in web development,
+  databases, and software engineering, focused on clean structure, responsive UI, and maintainable code.
+</p>
+
+<form class="searchbar" method="GET" action="/projects" role="search" aria-label="Search projects">
+  <span class="search-icon" aria-hidden="true">
+    <!-- simple magnifier icon -->
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M10.5 19a8.5 8.5 0 1 1 0-17 8.5 8.5 0 0 1 0 17Z" stroke="currentColor" stroke-width="2"/>
+      <path d="M16.8 16.8 22 22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </span>
+
+  <input
+    type="text"
+    id="q"
+    name="q"
+    value="<%= q || '' %>"
+    placeholder="Search projects... (e.g., vite, react, asp.net)"
+    autocomplete="off"
+  />
+
+  <input
+    type="text"
+    id="tag" 
+    name="tag" 
+    value="<%= tag || '' %>" 
+    placeholder="Tag... (e.g. crud)" 
+    autocomplete="off" 
+  />
+
+  <button type="submit">Search</button>
+
+  <% if (q || tag) { %>
+    <a class="clear-link" href="/projects" aria-label="Clear search">Clear</a>
+  <% } %>
+</form>
+
+<section class="projects-grid">
+  <% if (projects && projects.length) { %>
+    <% projects.forEach(function(project){ %>
+      <%- include("partials/project-card", { project: project }) %>
+    <% }) %>
+  <% } else { %>
+    <div class="card pad">
+      <p>No projects found.</p>
+    </div>
+  <% } %>
+</section>

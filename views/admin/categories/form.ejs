@@ -1,0 +1,64 @@
+<section class="admin-shell">
+  <div class="admin-form-header">
+    <div>
+      <p class="admin-eyebrow">Admin</p>
+      <h1><%= category ? "Edit Category" : "New Category" %></h1>
+      <p class="admin-subtitle">
+        <%= category ? "Update the category details below." : "Create a category for grouping your projects." %>
+      </p>
+    </div>
+
+    <a href="/admin/categories" class="btn btn-secondary">Back to Categories</a>
+  </div>
+
+  <% if (error) { %>
+    <div class="admin-alert admin-alert-error">
+      <strong><%= error %></strong>
+    </div>
+  <% } %>
+
+  <form
+    class="admin-form card"
+    method="POST"
+    action="<%= category ? '/admin/categories/' + category._id : '/admin/categories' %>">
+
+    <div class="admin-form-grid">
+      <div class="form-field">
+        <label for="name">Name</label>
+        <input
+          id="name"
+          name="name"
+          type="text"
+          required
+          value="<%= category?.name || '' %>"
+          placeholder="e.g. Frontend" />
+      </div>
+
+      <div class="form-field">
+        <label for="slug">Slug</label>
+        <input
+          id="slug"
+          name="slug"
+          type="text"
+          required
+          value="<%= category?.slug || '' %>"
+          placeholder="e.g. frontend-tools" />
+      </div>
+
+      <div class="form-field form-field-full">
+        <label for="description">Description</label>
+        <textarea
+          id="description"
+          name="description"
+          placeholder="Short description for this category"><%= category?.description || '' %></textarea>
+      </div>
+    </div>
+
+    <div class="admin-form-actions">
+      <a href="/admin/categories" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary">
+        <%= category ? "Save Changes" : "Create Category" %>
+      </button>
+    </div>
+  </form>
+</section>

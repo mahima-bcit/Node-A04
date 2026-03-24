@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header>
+      <div class="header-inner">
+        <a href="/" class="brand">Mahima Sharma</a>
+        <%- include("../partials/nav") %>
+      </div>
+    </header>
+
+    <main><%- body %></main>
+
+    <%- include("../partials/footer") %>
+    <script src="/js/main.js" defer></script>
+  </body>
+</html>

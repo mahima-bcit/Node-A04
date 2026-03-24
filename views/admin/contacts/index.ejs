@@ -1,0 +1,72 @@
+<section class="admin-shell">
+  <div class="admin-toolbar">
+    <div>
+      <p class="admin-eyebrow">Admin</p>
+      <h1>Contacts</h1>
+      <p class="admin-subtitle">Review contact submissions, toggle read status, and delete entries.</p>
+    </div>
+
+    <div class="admin-toolbar-actions">
+      <a href="/admin" class="btn btn-secondary">Back to Menu</a>
+    </div>
+  </div>
+
+  <% if (!contacts || !contacts.length) { %>
+    <div class="admin-empty card">
+      <h2>No contact submissions yet</h2>
+      <p>New messages from the contact form will appear here.</p>
+    </div>
+  <% } else { %>
+    <div class="admin-project-list">
+      <% contacts.forEach(c => { %>
+        <article class="admin-project-card card">
+          <div class="admin-project-top">
+            <div class="admin-project-main">
+              <h2 class="admin-project-title admin-contact-title">
+                <%= c.name %>
+              </h2>
+              <p class="admin-project-slug"><%= c.email %></p>
+              <span class="status-badge <%= c.isRead ? 'is-active' : 'is-inactive' %>">
+                <%= c.isRead ? 'Read' : 'Unread' %>
+              </span>
+            </div>
+
+            <div class="admin-project-right">
+              
+
+              <div class="admin-actions">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  data-toggle-read="<%= c._id %>">
+                  Toggle Read
+                </button>
+
+                <button
+                  type="button"
+                  class="btn btn-danger"
+                  data-delete="/admin/contacts/<%= c._id %>">
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-project-meta">
+            <div class="meta-block">
+              <span class="meta-label">Message</span>
+              <p class="admin-message"><%= c.message %></p>
+            </div>
+
+            <div class="meta-block">
+              <span class="meta-label">Posted</span>
+              <span class="meta-muted"><%= new Date(c.postedDate).toLocaleString() %></span>
+            </div>
+          </div>
+        </article>
+      <% }) %>
+    </div>
+  <% } %>
+</section>
+
+<script src="/js/admin.js"></script>

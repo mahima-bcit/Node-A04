@@ -1,0 +1,77 @@
+<section class="admin-shell">
+  <div class="admin-toolbar">
+    <div>
+      <p class="admin-eyebrow">Admin</p>
+      <h1>Projects</h1>
+      <p class="admin-subtitle">Manage project entries, categories, tags, and visibility.</p>
+    </div>
+
+    <div class="admin-toolbar-actions">
+      <a href="/admin" class="btn btn-secondary">Back to Menu</a>
+      <a href="/admin/projects/new" class="btn btn-primary">Add New Project</a>
+    </div>
+  </div>
+
+  <% if (!projects || !projects.length) { %>
+    <div class="admin-empty card">
+      <h2>No projects yet</h2>
+      <p>Create your first project to get started.</p>
+    </div>
+  <% } else { %>
+    <div class="admin-project-list">
+      <% projects.forEach(function(project) { %>
+        <article class="admin-project-card card">
+          <div class="admin-project-top">
+            <div class="admin-project-main">
+              <h2 class="admin-project-title"><%= project.title %></h2>
+              <span class="status-badge <%= project.isActive ? 'is-active' : 'is-inactive' %>">
+                <%= project.isActive ? 'Active' : 'Inactive' %>
+              </span>
+            </div>
+
+            <div class="admin-project-right">
+              
+
+              <div class="admin-actions">
+                <a href="/admin/projects/<%= project._id %>/edit" class="btn btn-secondary">Edit</a>
+
+                <button
+                  type="button"
+                  class="btn btn-danger"
+                  data-delete="/admin/projects/<%= project._id %>">
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-project-meta">
+            <div class="meta-block">
+              <span class="meta-label">Category</span>
+              <span class="chip chip-category">
+                <%= project.categoryId && project.categoryId.name ? project.categoryId.name : 'Uncategorized' %>
+              </span>
+            </div>
+
+            <div class="meta-block">
+              <span class="meta-label">Tags</span>
+              <div class="chip-row">
+                <% if (project.tags && project.tags.length) { %>
+                  <% project.tags.forEach(function(tag) { %>
+                    <span class="chip">
+                      <%= typeof tag === "string" ? tag : tag.name %>
+                    </span>
+                  <% }) %>
+                <% } else { %>
+                  <span class="meta-muted">No tags</span>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </article>
+      <% }) %>
+    </div>
+  <% } %>
+</section>
+
+<script src="/js/admin.js"></script>

@@ -1,0 +1,44 @@
+<% 
+const cover = (project.images || []).find(i => i.type === "cover");
+  const category = project.categoryId && project.categoryId.name ? project.categoryId : null;
+  const tags = (project.tags || [])
+    .map(t => (typeof t === "string" ? t : t.name))
+    .filter(Boolean)
+    .slice(0, 3);
+%>
+
+<article class="project-card card">
+  <% if (cover) { %>
+    <img class="thumb" src="<%= cover.path %>" alt="<%= cover.alt %>">
+  <% } %>
+
+  <div class="body">
+    <h3>
+      <a href="/projects/<%= project.slug %>"><%= project.title %></a>
+    </h3>
+
+    <p class="meta"><%= project.tagline %></p>
+
+    <% if (category) { %>
+      <p class="meta"><strong>Category:</strong> <%= category.name %></p>
+    <% } %>
+
+    <% if (project.stack && project.stack.length) { %>
+      <p class="meta"><strong>Tech Stack:</strong>
+        <% project.stack.slice(0, 6).forEach(function(s){ %>
+          <span><%= s %></span>
+        <% }) %>
+      </p>
+    <% } %>
+
+    <% if (tags.length) { %>
+      <div class="pills" aria-label="Tags">
+        <p class="meta"><strong>Tags:</strong>
+        <% tags.forEach(function(t){ %>
+          <a class="pill" href="/projects?tag=<%= encodeURIComponent(t) %>"><%= t %></a>
+        <% }) %>
+        </p>
+      </div>
+    <% } %>
+  </div>
+</article>

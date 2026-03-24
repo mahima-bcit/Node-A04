@@ -1,0 +1,60 @@
+<% 
+  const images = (project?.images || []);
+  const category = project?.categoryId && typeof project.categoryId === "object" ? project.categoryId : null;
+  const tags = (project?.tags || []).map((t) => (typeof t === "string" ? t : t?.name)).filter(Boolean);
+%>
+
+<% if (images.length > 0) { %>
+  <div class="slider">
+    <div class="slider-track">
+      <% images.forEach(function(img){ %>
+        <div class="slide">
+          <img src="<%= img.path %>" alt="<%= img.alt %>">
+        </div>
+      <% }) %>
+    </div>
+
+    <% if (images.length > 1) { %>
+      <button class="slider-btn prev" aria-label="Previous">&#8592;</button>
+      <button class="slider-btn next" aria-label="Next">&#8594;</button>
+      <div class="slider-dots">
+        <% images.forEach(function(img, i){ %>
+          <span class="dot <%= i === 0 ? 'active' : '' %>"></span>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+<% } %>
+
+<h1><%= project.title %></h1>
+
+<% if (project.tagline) { %>
+  <p><%= project.tagline %></p>
+<% } %>
+
+<% if (category) { %>
+  <p>
+    <strong>Category:</strong>
+    <a href="/projects/category/<%= category.slug %>"><%= category.name %></a>
+  </p>
+<% } %>
+
+<p><%= project.description %></p>
+
+<% if (project.stack && project.stack.length) { %>
+  <h3>Tech Stack</h3>
+  <div class="pills">
+    <% project.stack.forEach(function(s){ %>
+      <span><%= s %></span>
+    <% }) %>
+  </div>
+<% } %>
+
+<% if (tags.length) { %>
+  <h3>Tags</h3>
+  <div class="pills">
+    <% tags.forEach(function(t){ %>
+      <a class="pill" href="/projects?tag=<%= encodeURIComponent(t) %>"><%= t %></a>
+    <% }) %>
+  </div>
+<% } %>

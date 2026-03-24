@@ -1,0 +1,34 @@
+# Node / npm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+
+# Environment variables (if used later)
+.env
+.env.*.local
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+
+# Optional build artifacts (if students add tooling)
+dist/
+build/
+.cache/
+.temp/
+.tmp/
+
+# Sass caches (if someone adds sass anyway)
+.sass-cache/
+*.css.map
+
+# Coverage (if someone adds tests)
+coverage/

@@ -1,0 +1,11 @@
+<ul>
+    <% if (!projects || projects.length === 0) { %>
+        <li><small class="muted">No other projects.</small></li>
+    <% } else { %>
+        <% projects.forEach(p => { %>
+            <li>
+                <a href="/projects/<%= p.slug %>"><%= p.title %></a>
+            </li>
+        <% }) %>
+    <% } %>
+</ul>

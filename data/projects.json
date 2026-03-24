@@ -1,0 +1,142 @@
+{
+  "projects": [
+    {
+      "id": "p-2001",
+      "slug": "personal-portfolio",
+      "title": "Personal Portfolio Landing Page Launchpad",
+      "tagline": "Single-page personal portfolio landing page.",
+      "description": "A single-page personal portfolio landing page built with Tailwind, SASS, and Vite.",
+      "status": true,
+      "stack": ["tailwind", "sass", "vite", "html", "css"],
+      "tags": ["vite-project", "styling", "tailwind-sass"],
+      "images": [
+        {
+          "path": "/images/projects/personal-portfolio/cover.png",
+          "alt": "Personal Portfolio cover image",
+          "type": "cover"
+        },
+        {
+          "path": "/images/projects/personal-portfolio/screenshot.png",
+          "alt": "Personal Portfolio projects page screenshot",
+          "type": "screenshot"
+        }
+      ],
+      "dates": { "created": "2026-01-10", "updated": "2026-02-17" }
+    },
+    {
+      "id": "p-2002",
+      "slug": "dog-breed-website",
+      "title": "Dog Breed Website",
+      "tagline": "CRUD dog cards with image uploads.",
+      "description": "A web app that manages dog profiles (add/edit/delete) and displays them as searchable cards. Built for practicing Express routes, forms, and static assets.",
+      "status": true,
+      "stack": ["node", "express", "html", "css", "javascript"],
+      "tags": ["crud", "forms", "uploads"],
+      "images": [
+        {
+          "path": "/images/projects/dog-breed-website/cover.png",
+          "alt": "Dog Breed Website cover image",
+          "type": "cover"
+        },
+        {
+          "path": "/images/projects/dog-breed-website/screenshot.png",
+          "alt": "Dog cards grid screenshot",
+          "type": "screenshot"
+        }
+      ],
+      "dates": { "created": "2026-02-01", "updated": "2026-02-12" }
+    },
+    {
+      "id": "p-2003",
+      "slug": "fliptech-matching-game",
+      "title": "FlipTech Matching Game",
+      "tagline": "Memory matching game with levels and timer.",
+      "description": "A JavaScript matching game featuring levels, a timer, a move counter, and a restart loop to practice state management and DOM events.",
+      "status": true,
+      "stack": ["html", "css", "javascript"],
+      "tags": ["dom", "game-loop", "state"],
+      "images": [
+        {
+          "path": "/images/projects/fliptech-matching-game/cover.png",
+          "alt": "FlipTech game cover image",
+          "type": "cover"
+        },
+        {
+          "path": "/images/projects/fliptech-matching-game/screenshot.png",
+          "alt": "FlipTech gameplay screenshot",
+          "type": "screenshot"
+        }
+      ],
+      "dates": { "created": "2025-11-10", "updated": "2025-11-25" }
+    },
+    {
+      "id": "p-2004",
+      "slug": "weather-app-react",
+      "title": "Weather App",
+      "tagline": "React app to search and display weather.",
+      "description": "A small React app that fetches weather data and displays current conditions with a clean card layout, focusing on component structure and state handling.",
+      "status": true,
+      "stack": ["react", "vite", "javascript", "css"],
+      "tags": ["api", "components", "state"],
+      "images": [
+        {
+          "path": "/images/projects/weather-app-react/cover.png",
+          "alt": "Weather App cover image",
+          "type": "cover"
+        },
+        {
+          "path": "/images/projects/weather-app-react/screenshot.png",
+          "alt": "Weather App results card screenshot",
+          "type": "screenshot"
+        }
+      ],
+      "dates": { "created": "2025-12-05", "updated": "2026-01-15" }
+    },
+    {
+      "id": "p-2005",
+      "slug": "carecompass-teamyellow",
+      "title": "CareCompass",
+      "tagline": "Counsellor SaaS portal with subscriptions.",
+      "description": "Team project building a counsellor-focused SaaS portal with roles, subscriptions, and dashboards. Built with ASP.NET Core and EF Core (project write-up + architecture).",
+      "status": true,
+      "stack": ["aspnet-core", "ef-core", "sqlite", "bootstrap"],
+      "tags": ["team-project", "saas", "erd"],
+      "images": [
+        {
+          "path": "/images/projects/carecompass-teamyellow/cover.png",
+          "alt": "CareCompass cover image",
+          "type": "cover"
+        },
+        {
+          "path": "/images/projects/carecompass-teamyellow/screenshot.png",
+          "alt": "CareCompass dashboard screenshot",
+          "type": "screenshot"
+        }
+      ],
+      "dates": { "created": "2026-01-20", "updated": "2026-02-10" }
+    },
+    {
+      "id": "p-2006",
+      "slug": "web-dev-bulletin",
+      "title": "Web Dev Bulletin",
+      "tagline": "News-style landing page layout practice.",
+      "description": "A responsive news-style homepage built for layout practice, emphasizing semantic HTML, reusable sections, and clean typography.",
+      "status": true,
+      "stack": ["html", "css", "javascript"],
+      "tags": ["responsive", "layout", "semantic-html"],
+      "images": [
+        {
+          "path": "/images/projects/web-dev-bulletin/cover.png",
+          "alt": "Web Dev Bulletin cover image",
+          "type": "cover"
+        },
+        {
+          "path": "/images/projects/web-dev-bulletin/screenshot.png",
+          "alt": "Web Dev Bulletin homepage screenshot",
+          "type": "screenshot"
+        }
+      ],
+      "dates": { "created": "2026-01-28", "updated": "2026-02-05" }
+    }
+  ]
+}

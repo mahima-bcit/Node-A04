@@ -1,0 +1,6 @@
+<h1>Database Error</h1>
+<p>MongoDB is not connected.</p>
+<% if (error) { %>
+  <pre><%= error %></pre>
+<% } %>
+<p>Check your <code>.env</code> (MONGODB_URI) and Atlas IP access/user.</p>

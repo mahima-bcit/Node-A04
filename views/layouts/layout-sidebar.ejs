@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <p class="brand">Mahima Sharma</p>
+      <%- include("../partials/nav") %>
+    </div>
+  </header>
+
+  <main class="sidebar-layout">
+    <section class="detail card">
+      <%- body %>
+    </section>
+
+    <aside class="sidebar card">
+      <h3>Other Projects</h3>
+      <%- include("../partials/other-projects-list", { projects: otherProjects || [] }) %>
+    </aside>
+  </main>
+
+  <%- include("../partials/footer") %>
+  <script src="/js/main.js" defer></script>
+</body>
+</html>

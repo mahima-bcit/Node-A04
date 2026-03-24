@@ -1,0 +1,21 @@
+{
+  "name": "node-a03-portfolio-launchpad-mongodb",
+  "version": "1.0.0",
+  "description": "BCIT SSD Node A03 - Portfolio Launchpad with MongoDB Integration: Atlas + Mongoose + Mini CMS",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "import-projects": "node scripts/import-projects.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-ejs-layouts": "^2.5.1",
+    "mongoose": "^9.2.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

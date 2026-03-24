@@ -1,0 +1,125 @@
+<section class="admin-shell">
+  <div class="admin-form-header">
+    <div>
+      <p class="admin-eyebrow">Admin</p>
+      <h1><%= project ? "Edit Project" : "New Project" %></h1>
+      <p class="admin-subtitle">
+        <%= project ? "Update the project details and save your changes." : "Create a new project entry for your portfolio." %>
+      </p>
+    </div>
+
+    <a href="/admin/projects" class="btn btn-secondary">Back to Projects</a>
+  </div>
+
+  <% if (error) { %>
+    <div class="admin-alert admin-alert-error">
+      <strong><%= error %></strong>
+    </div>
+  <% } %>
+
+  <form
+    class="admin-form card"
+    method="POST"
+    action="<%= project ? '/admin/projects/' + project._id : '/admin/projects' %>"
+  >
+    <div class="admin-form-grid">
+      <div class="form-field">
+        <label for="slug">Slug</label>
+        <input
+          id="slug"
+          name="slug"
+          type="text"
+          required
+          value="<%= project?.slug || '' %>"
+          placeholder="e.g. personal-portfolio"
+        />
+      </div>
+
+      <div class="form-field">
+        <label for="title">Title</label>
+        <input
+          id="title"
+          name="title"
+          type="text"
+          required
+          value="<%= project?.title || '' %>"
+          placeholder="Project title"
+        />
+      </div>
+
+      <div class="form-field form-field-full">
+        <label for="tagline">Tagline</label>
+        <input
+          id="tagline"
+          name="tagline"
+          type="text"
+          value="<%= project?.tagline || '' %>"
+          placeholder="Short one-line summary"
+        />
+      </div>
+
+      <div class="form-field form-field-full">
+        <label for="description">Description</label>
+        <textarea
+          id="description"
+          name="description"
+          required
+          placeholder="Write a short project description"
+        ><%= project?.description || '' %></textarea>
+      </div>
+
+      <div class="form-field">
+        <label for="categoryId">Category</label>
+        <select id="categoryId" name="categoryId" required>
+          <% categories.forEach(c => { %>
+            <option
+              value="<%= c._id %>"
+              <%= String(project?.categoryId || "") === String(c._id) ? "selected" : "" %>>
+              <%= c.name %>
+            </option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label for="isActive">Visibility</label>
+        <select id="isActive" name="isActive">
+          <option value="true" <%= project?.isActive === true ? "selected" : "" %>>Active</option>
+          <option value="false" <%= project?.isActive === false ? "selected" : "" %>>Inactive</option>
+        </select>
+      </div>
+
+      <div class="form-field form-field-full">
+        <label for="tagsCsv">Tags</label>
+        <input
+          id="tagsCsv"
+          name="tagsCsv"
+          type="text"
+          required
+          value="<%= project?.tagsCsv || '' %>"
+          placeholder="crud, api, node"
+        />
+        <p class="field-help">Comma-separated tags. Example: crud, express, mongodb</p>
+      </div>
+
+      <div class="form-field form-field-full">
+        <label for="stack">Tech Stack</label>
+        <input
+          id="stack"
+          name="stack"
+          type="text"
+          value="<%= project?.stackCsv || '' %>"
+          placeholder="node, express, mongodb"
+        />
+        <p class="field-help">Optional. Comma-separated values.</p>
+      </div>
+    </div>
+
+    <div class="admin-form-actions">
+      <a href="/admin/projects" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary">
+        <%= project ? "Save Changes" : "Create Project" %>
+      </button>
+    </div>
+  </form>
+</section>
