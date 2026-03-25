@@ -1244,3 +1244,61 @@ button:disabled:hover,
     grid-template-columns: 1fr;
   }
 }
+
+/* ----------------------------------------------------------
+   20. A04 CSS
+   (TODO: Still need to put them at the right section above)
+   ---------------------------------------------------------- */
+.inline-form {
+  display: inline;
+}
+
+.stack-top-space {
+  margin-top: 1rem;
+}
+
+.admin-images-section {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+}
+
+.admin-image-preview {
+  max-width: 320px;
+  margin-top: 1rem;
+  border-radius: 12px;
+  display: block;
+}
+
+.project-detail-hero-wrap {
+  margin-bottom: 1.5rem;
+}
+
+.project-detail-hero {
+  width: 100%;
+  border-radius: 16px;
+  display: block;
+}
+
+.project-gallery-heading {
+  margin-top: 2rem;
+}
+
+.project-gallery-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.project-gallery-image {
+  width: 100%;
+  border-radius: 12px;
+  display: block;
+}
+
+.admin-section-title {
+  margin-bottom: 1rem;
+}
+
+.meta-top-half {
+  margin-top: 0.5rem;
+}
