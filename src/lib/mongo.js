@@ -11,10 +11,10 @@ async function initMongo(uri) {
     return;
   }
 
+  const dbName = process.env.MONGODB_DB_NAME || "node-db";
+
   try {
-    await mongoose.connect(uri, {
-      dbName: "node-a03",
-    });
+    await mongoose.connect(uri, { dbName });
     dbReady = true;
     dbError = null;
     console.log("Connected to MongoDB: ", mongoose.connection.name);

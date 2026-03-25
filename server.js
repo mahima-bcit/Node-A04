@@ -30,7 +30,7 @@ app.use(
     saveUninitialized: false,
     store: MongoStore.create({
       mongoUrl: process.env.MONGODB_URI,
-      dbName: "node-a03",
+      dbName: process.env.MONGODB_DB_NAME || "node-db",
     }),
     cookie: {
       maxAge: 1000 * 60 * 60 * 24,

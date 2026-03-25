@@ -29,7 +29,7 @@ async function upsertUser({ email, nickname, password, role }) {
 
 async function run() {
   await mongoose.connect(process.env.MONGODB_URI, {
-    dbName: "node-a03",
+    dbName: process.env.MONGODB_DB_NAME || "node-db",
   });
 
   await upsertUser({

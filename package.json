@@ -1,7 +1,7 @@
 {
-  "name": "node-a03-portfolio-launchpad-mongodb",
+  "name": "node-a04-portfolio-launchpad-auth-rbac",
   "version": "1.0.0",
-  "description": "BCIT SSD Node A03 - Portfolio Launchpad with MongoDB Integration: Atlas + Mongoose + Mini CMS",
+  "description": "BCIT SSD Node A04 - Portfolio Launchpad with Authentication, RBAC, Image Uploads, and Admin CMS",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
