@@ -1,0 +1,64 @@
+<section class="admin-shell">
+  <div class="admin-toolbar">
+    <div>
+      <p class="admin-eyebrow">Admin</p>
+      <h1>Users</h1>
+      <p class="admin-subtitle">Manage user accounts and roles.</p>
+    </div>
+
+    <div class="admin-toolbar-actions">
+      <a href="/admin" class="btn btn-secondary">Back to Menu</a>
+    </div>
+  </div>
+
+  <% if (error) { %>
+    <div class="admin-alert admin-alert-error">
+      <strong><%= error %></strong>
+    </div>
+  <% } %>
+
+  <% if (!users || !users.length) { %>
+    <div class="admin-empty card">
+      <h2>No users found</h2>
+      <p>Seed users or register a new account first.</p>
+    </div>
+  <% } else { %>
+    <div class="admin-project-list">
+      <% users.forEach(function(user) { %>
+        <article class="admin-project-card card">
+          <div class="admin-project-top">
+            <div class="admin-project-main">
+              <h2 class="admin-project-title"><%= user.nickname %></h2>
+              <p class="admin-project-slug"><%= user.email %></p>
+
+              <span class="status-badge is-active"><%= user.role %></span>
+
+              <% if (user.lastLogin) { %>
+                <p class="meta-muted meta-top-half">
+                  Last login: <%= new Date(user.lastLogin).toLocaleString() %>
+                </p>
+              <% } %>
+            </div>
+
+            <div class="admin-project-right">
+              <div class="admin-actions">
+                <a href="/admin/users/<%= user._id %>/edit" class="btn btn-secondary">Edit</a>
+
+                <% if (String(currentUser._id) !== String(user._id)) { %>
+                  <form
+                    method="POST"
+                    action="/admin/users/<%= user._id %>/delete"
+                    onsubmit="return confirm('Delete this user?');">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                  </form>
+                <% } else { %>
+                  <span class="meta-muted">Current account</span>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </article>
+      <% }) %>
+    </div>
+  <% } %>
+</section>

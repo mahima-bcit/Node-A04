@@ -9,4 +9,20 @@
   <a href="/about">About</a>
   <a href="/projects">Projects</a>
   <a href="/contact">Contact</a>
+
+  <% if (!isAuthenticated) { %>
+    <a href="/auth/login">Login</a>
+    <a href="/auth/register">Register</a>
+  <% } else { %>
+    <span><strong><%= currentUser.nickname %></strong></span>
+
+    <% if (currentUser.role === "MODERATOR" || currentUser.role === "ADMIN") { %>
+      <span><%= currentUser.role %></span>
+      <a href="/admin">Admin</a>
+    <% } %>
+
+    <form method="POST" action="/auth/logout" class="inline-form">
+      <button type="submit" class="btn btn-secondary">Logout</button>
+    </form>
+  <% } %>
 </nav>

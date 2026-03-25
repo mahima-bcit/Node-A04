@@ -1,29 +1,27 @@
-<% 
-  const images = (project?.images || []);
+<%
+  const images = project?.images || [];
+  const featuredImage =
+    images.find(i => i.isFeatured) ||
+    images.find(i => i.type === "cover") ||
+    images[0] ||
+    null;
+
+  const galleryImages = images.filter((img) => {
+    if (!featuredImage) return true;
+    return img.path !== featuredImage.path;
+  });
+
   const category = project?.categoryId && typeof project.categoryId === "object" ? project.categoryId : null;
   const tags = (project?.tags || []).map((t) => (typeof t === "string" ? t : t?.name)).filter(Boolean);
 %>
 
-<% if (images.length > 0) { %>
-  <div class="slider">
-    <div class="slider-track">
-      <% images.forEach(function(img){ %>
-        <div class="slide">
-          <img src="<%= img.path %>" alt="<%= img.alt %>">
-        </div>
-      <% }) %>
-    </div>
-
-    <% if (images.length > 1) { %>
-      <button class="slider-btn prev" aria-label="Previous">&#8592;</button>
-      <button class="slider-btn next" aria-label="Next">&#8594;</button>
-      <div class="slider-dots">
-        <% images.forEach(function(img, i){ %>
-          <span class="dot <%= i === 0 ? 'active' : '' %>"></span>
-        <% }) %>
-      </div>
-    <% } %>
-  </div>
+<% if (featuredImage) { %>
+  <section class="project-detail-hero-wrap">
+    <img
+      src="<%= featuredImage.path %>"
+      alt="<%= featuredImage.alt || project.title %>"
+      class="project-detail-hero" />
+  </section>
 <% } %>
 
 <h1><%= project.title %></h1>
@@ -55,6 +53,18 @@
   <div class="pills">
     <% tags.forEach(function(t){ %>
       <a class="pill" href="/projects?tag=<%= encodeURIComponent(t) %>"><%= t %></a>
+    <% }) %>
+  </div>
+<% } %>
+
+<% if (galleryImages.length) { %>
+  <h3 class="project-gallery-heading">Gallery</h3>
+  <div class="project-gallery-grid">
+    <% galleryImages.forEach(function(img){ %>
+      <img
+        src="<%= img.path %>"
+        alt="<%= img.alt || project.title %>"
+        class="project-gallery-image" />
     <% }) %>
   </div>
 <% } %>

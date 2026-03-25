@@ -19,13 +19,11 @@ function normalizeTags(project) {
   const tags = Array.isArray(project.tags) ? project.tags : [];
   const stack = Array.isArray(project.stack) ? project.stack : [];
 
-  // Convert string tags to embedded objects
   const out = tags
     .map((t) => String(t).trim())
     .filter(Boolean)
     .map((name) => ({ name }));
 
-  // Ensure 3+ tags (rubric) by borrowing from stack if needed
   for (const s of stack) {
     if (out.length >= 3) break;
     const name = String(s).trim();
@@ -34,7 +32,6 @@ function normalizeTags(project) {
       out.push({ name });
   }
 
-  // If still < 3, pad with generic tags
   while (out.length < 3) out.push({ name: "misc" });
 
   return out;
@@ -89,15 +86,16 @@ async function upsertCategory({ name, slug, description }) {
 
 async function main() {
   const uri = process.env.MONGODB_URI;
+  const dbName = process.env.MONGODB_DB_NAME || "node-db";
+
   if (!uri) {
     console.error("Missing MONGODB_URI in .env");
     process.exit(1);
   }
 
-  await mongoose.connect(uri, { dbName: "node-a03" });
+  await mongoose.connect(uri, { dbName });
   console.log("Connected to MongoDB: ", mongoose.connection.name);
 
-  // Create minimum 3+ categories (rubric)
   const categories = await Promise.all([
     upsertCategory({
       name: "Frontend",
@@ -123,7 +121,6 @@ async function main() {
 
   const categoryBySlug = new Map(categories.map((c) => [c.slug, c]));
 
-  // Read your A02 file
   const jsonPath = path.join(__dirname, "..", "data", "projects.json");
   const raw = fs.readFileSync(jsonPath, "utf-8");
   const parsed = JSON.parse(raw);
@@ -146,8 +143,6 @@ async function main() {
       isActive: pickIsActive(p),
       tags: normalizeTags(p),
       categoryId: category._id,
-
-      // keep A02 extras so views still work
       tagline: p.tagline || "",
       stack: Array.isArray(p.stack) ? p.stack : [],
       images: Array.isArray(p.images) ? p.images : [],

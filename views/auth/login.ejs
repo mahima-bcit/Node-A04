@@ -1,0 +1,36 @@
+<section class="admin-shell">
+  <div class="admin-form-header">
+    <div>
+      <p class="admin-eyebrow">Auth</p>
+      <h1>Login</h1>
+      <p class="admin-subtitle">Sign in with your email and password.</p>
+    </div>
+
+    <a href="/" class="btn btn-secondary">Back Home</a>
+  </div>
+
+  <% if (error) { %>
+    <div class="admin-alert admin-alert-error">
+      <strong><%= error %></strong>
+    </div>
+  <% } %>
+
+  <form class="admin-form card" method="POST" action="/auth/login">
+    <div class="admin-form-grid">
+      <div class="form-field form-field-full">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" required />
+      </div>
+
+      <div class="form-field form-field-full">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" required />
+      </div>
+    </div>
+
+    <div class="admin-form-actions">
+      <a href="/auth/register" class="btn btn-secondary">Create Account</a>
+      <button type="submit" class="btn btn-primary">Login</button>
+    </div>
+  </form>
+</section>

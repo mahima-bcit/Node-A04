@@ -3,7 +3,12 @@
     <div>
       <p class="admin-eyebrow">Admin</p>
       <h1>Dashboard</h1>
-      <p class="admin-subtitle">Manage contacts, categories, and projects from one place.</p>
+      <p class="admin-subtitle">
+        Signed in as <strong><%= currentUser.nickname %></strong>
+        <% if (currentUser?.role) { %>
+          (<%= currentUser.role %>)
+        <% } %>
+      </p>
     </div>
   </div>
 
@@ -11,25 +16,41 @@
     <a class="admin-nav-card card" href="/admin/contacts">
       <div class="admin-nav-content">
         <h2>Contacts</h2>
-        <p>Review submissions, mark them read or unread, and delete messages.</p>
+        <p>
+          <% if (currentUser.role === "ADMIN") { %>
+            Review submissions, mark them read or unread, and delete messages.
+          <% } else { %>
+            Review submissions and mark them read or unread.
+          <% } %>
+        </p>
         <span class="admin-nav-link">Open Contacts →</span>
       </div>
     </a>
 
-    <a class="admin-nav-card card" href="/admin/categories">
-      <div class="admin-nav-content">
-        <h2>Categories</h2>
-        <p>Create, edit, and safely delete categories while tracking project counts.</p>
-        <span class="admin-nav-link">Open Categories →</span>
-      </div>
-    </a>
+    <% if (currentUser.role === "ADMIN") { %>
+      <a class="admin-nav-card card" href="/admin/categories">
+        <div class="admin-nav-content">
+          <h2>Categories</h2>
+          <p>Create, edit, and safely delete categories while tracking project counts.</p>
+          <span class="admin-nav-link">Open Categories →</span>
+        </div>
+      </a>
 
-    <a class="admin-nav-card card" href="/admin/projects">
-      <div class="admin-nav-content">
-        <h2>Projects</h2>
-        <p>Manage project entries, tags, category assignments, and visibility.</p>
-        <span class="admin-nav-link">Open Projects →</span>
-      </div>
-    </a>
+      <a class="admin-nav-card card" href="/admin/projects">
+        <div class="admin-nav-content">
+          <h2>Projects</h2>
+          <p>Manage project entries, categories, visibility, and images.</p>
+          <span class="admin-nav-link">Open Projects →</span>
+        </div>
+      </a>
+
+      <a class="admin-nav-card card" href="/admin/users">
+        <div class="admin-nav-content">
+          <h2>Users</h2>
+          <p>Manage users and roles. Admins cannot delete their own account.</p>
+          <span class="admin-nav-link">Open Users →</span>
+        </div>
+      </a>
+    <% } %>
   </div>
 </section>

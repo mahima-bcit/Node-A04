@@ -1,0 +1,60 @@
+<section class="admin-shell">
+  <div class="admin-form-header">
+    <div>
+      <p class="admin-eyebrow">Admin</p>
+      <h1>Edit User</h1>
+      <p class="admin-subtitle">Update account details and role. Leave password blank to keep it unchanged.</p>
+    </div>
+
+    <a href="/admin/users" class="btn btn-secondary">Back to Users</a>
+  </div>
+
+  <% if (error) { %>
+    <div class="admin-alert admin-alert-error">
+      <strong><%= error %></strong>
+    </div>
+  <% } %>
+
+  <form class="admin-form card" method="POST" action="/admin/users/<%= user._id %>">
+    <div class="admin-form-grid">
+      <div class="form-field form-field-full">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          required
+          value="<%= user.email || '' %>" />
+      </div>
+
+      <div class="form-field form-field-full">
+        <label for="nickname">Nickname</label>
+        <input
+          id="nickname"
+          name="nickname"
+          type="text"
+          required
+          value="<%= user.nickname || '' %>" />
+      </div>
+
+      <div class="form-field">
+        <label for="role">Role</label>
+        <select id="role" name="role" required>
+          <option value="USER" <%= user.role === "USER" ? "selected" : "" %>>USER</option>
+          <option value="MODERATOR" <%= user.role === "MODERATOR" ? "selected" : "" %>>MODERATOR</option>
+          <option value="ADMIN" <%= user.role === "ADMIN" ? "selected" : "" %>>ADMIN</option>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label for="password">New Password</label>
+        <input id="password" name="password" type="password" placeholder="Leave blank to keep current password" />
+      </div>
+    </div>
+
+    <div class="admin-form-actions">
+      <a href="/admin/users" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary">Save User</button>
+    </div>
+  </form>
+</section>

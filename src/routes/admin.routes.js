@@ -1,12 +1,39 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+const bcrypt = require("bcrypt");
 
+const { requireRole } = require("../middleware/auth");
 const Contact = require("../models/Contact");
 const Category = require("../models/Category");
 const Project = require("../models/Project");
+const User = require("../models/User");
 const repo = require("../lib/projects.repository");
 
 const router = express.Router();
+
+router.use(requireRole("MODERATOR", "ADMIN"));
+
+const uploadDir = path.join(process.cwd(), "public", "uploads");
+fs.mkdirSync(uploadDir, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const originalExt = path.extname(file.originalname || "").toLowerCase();
+    const safeExt = [".jpg", ".jpeg", ".png", ".webp", ".gif"].includes(originalExt)
+      ? originalExt
+      : ".png";
+
+    cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${safeExt}`);
+  },
+});
+
+const upload = multer({ storage });
 
 // Helpers
 function isValidObjectId(id) {
@@ -32,9 +59,95 @@ function renderNotFound(res, req) {
   });
 }
 
+function buildProjectPayload(req) {
+  const stackCsv = String(req.body.stack || "");
+
+  return {
+    slug: String(req.body.slug || "").trim(),
+    title: String(req.body.title || "").trim(),
+    tagline: String(req.body.tagline || "").trim(),
+    description: String(req.body.description || "").trim(),
+    isActive: req.body.isActive === "true",
+    categoryId: req.body.categoryId,
+    tags: repo.parseTagsCsv(req.body.tagsCsv),
+    stack: stackCsv
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
+    tagsCsv: String(req.body.tagsCsv || ""),
+    stackCsv,
+  };
+}
+
+function normalizeImages(images = []) {
+  return images.map((img) => ({
+    path: img.path,
+    alt: img.alt || "",
+    type: img.isFeatured || img.type === "cover" ? "cover" : "gallery",
+    isFeatured: Boolean(img.isFeatured || img.type === "cover"),
+  }));
+}
+
+function ensureSingleFeatured(images = []) {
+  const normalized = normalizeImages(images);
+
+  if (!normalized.length) return [];
+
+  let featuredIndex = normalized.findIndex((img) => img.isFeatured);
+
+  if (featuredIndex === -1) {
+    featuredIndex = normalized.findIndex((img) => img.type === "cover");
+  }
+
+  if (featuredIndex === -1) {
+    featuredIndex = 0;
+  }
+
+  return normalized.map((img, index) => ({
+    path: img.path,
+    alt: img.alt,
+    type: index === featuredIndex ? "cover" : "gallery",
+    isFeatured: index === featuredIndex,
+  }));
+}
+
+function buildUploadedImages(files, title) {
+  const result = [];
+
+  const featuredFile = files?.featuredImage?.[0] || null;
+  const galleryFiles = files?.galleryImages || [];
+
+  if (featuredFile) {
+    result.push({
+      path: `/uploads/${featuredFile.filename}`,
+      alt: `${title || "Project"} featured image`,
+      type: "cover",
+      isFeatured: true,
+    });
+  }
+
+  galleryFiles.forEach((file, index) => {
+    result.push({
+      path: `/uploads/${file.filename}`,
+      alt: `${title || "Project"} gallery image ${index + 1}`,
+      type: "gallery",
+      isFeatured: false,
+    });
+  });
+
+  return ensureSingleFeatured(result);
+}
+
+function removeUploadedFile(siteRelativePath) {
+  if (!siteRelativePath || !siteRelativePath.startsWith("/uploads/")) return;
+
+  const diskPath = path.join(process.cwd(), "public", siteRelativePath.replace(/^\//, ""));
+  fs.unlink(diskPath, () => {});
+}
+
 // Dashboard
 router.get("/", (req, res) => {
-  res.render("admin/index", { title: "Admin" });
+  res.render("admin/index", { title: "Admin Dashboard" });
 });
 
 /* ---------------- Contacts Admin ---------------- */
@@ -59,11 +172,11 @@ router.patch("/contacts/:id/read", async (req, res) => {
   contact.isRead = !contact.isRead;
   await contact.save();
 
-  res.json({ ok: true, isRead: contact.isRead });
+  return res.json({ ok: true, isRead: contact.isRead });
 });
 
 // DELETE /admin/contacts/:id
-router.delete("/contacts/:id", async (req, res) => {
+router.delete("/contacts/:id", requireRole("ADMIN"), async (req, res) => {
   if (!res.locals.dbReady) return jsonDbError(res);
   if (!isValidObjectId(req.params.id))
     return res.status(404).json({ error: "Not found" });
@@ -71,13 +184,13 @@ router.delete("/contacts/:id", async (req, res) => {
   const deleted = await Contact.findByIdAndDelete(req.params.id);
   if (!deleted) return res.status(404).json({ error: "Not found" });
 
-  res.json({ ok: true });
+  return res.json({ ok: true });
 });
 
 /* ---------------- Categories CRUD ---------------- */
 
 // GET /admin/categories
-router.get("/categories", async (req, res) => {
+router.get("/categories", requireRole("ADMIN"), async (req, res) => {
   if (!res.locals.dbReady) return renderDbError(res, req);
 
   const categories = await Category.aggregate([
@@ -94,15 +207,15 @@ router.get("/categories", async (req, res) => {
     { $sort: { name: 1 } },
   ]);
 
-  res.render("admin/categories/index", {
+  return res.render("admin/categories/index", {
     title: "Admin - Categories",
     categories,
   });
 });
 
 // GET /admin/categories/new
-router.get("/categories/new", async (req, res) => {
-  res.render("admin/categories/form", {
+router.get("/categories/new", requireRole("ADMIN"), async (req, res) => {
+  return res.render("admin/categories/form", {
     title: "New Category",
     category: null,
     error: null,
@@ -110,7 +223,7 @@ router.get("/categories/new", async (req, res) => {
 });
 
 // POST /admin/categories
-router.post("/categories", async (req, res) => {
+router.post("/categories", requireRole("ADMIN"), async (req, res) => {
   if (!res.locals.dbReady) return renderDbError(res, req);
 
   try {
@@ -120,9 +233,9 @@ router.post("/categories", async (req, res) => {
       description: req.body.description || "",
     });
 
-    res.redirect("/admin/categories");
+    return res.redirect("/admin/categories");
   } catch (e) {
-    res.status(400).render("admin/categories/form", {
+    return res.status(400).render("admin/categories/form", {
       title: "New Category",
       category: req.body,
       error: "Could not create category (slug must be unique and URL-safe).",
@@ -131,14 +244,14 @@ router.post("/categories", async (req, res) => {
 });
 
 // GET /admin/categories/:id/edit
-router.get("/categories/:id/edit", async (req, res) => {
+router.get("/categories/:id/edit", requireRole("ADMIN"), async (req, res) => {
   if (!res.locals.dbReady) return renderDbError(res, req);
   if (!isValidObjectId(req.params.id)) return renderNotFound(res, req);
 
   const category = await Category.findById(req.params.id).lean();
   if (!category) return renderNotFound(res, req);
 
-  res.render("admin/categories/form", {
+  return res.render("admin/categories/form", {
     title: "Edit Category",
     category,
     error: null,
@@ -146,7 +259,7 @@ router.get("/categories/:id/edit", async (req, res) => {
 });
 
 // POST /admin/categories/:id
-router.post("/categories/:id", async (req, res) => {
+router.post("/categories/:id", requireRole("ADMIN"), async (req, res) => {
   if (!res.locals.dbReady) return renderDbError(res, req);
   if (!isValidObjectId(req.params.id)) return renderNotFound(res, req);
 
@@ -161,9 +274,9 @@ router.post("/categories/:id", async (req, res) => {
       { runValidators: true },
     );
 
-    res.redirect("/admin/categories");
+    return res.redirect("/admin/categories");
   } catch (e) {
-    res.status(400).render("admin/categories/form", {
+    return res.status(400).render("admin/categories/form", {
       title: "Edit Category",
       category: { _id: req.params.id, ...req.body },
       error:
@@ -173,7 +286,7 @@ router.post("/categories/:id", async (req, res) => {
 });
 
 // DELETE /admin/categories/:id (SAFE DELETE: refuse if referenced)
-router.delete("/categories/:id", async (req, res) => {
+router.delete("/categories/:id", requireRole("ADMIN"), async (req, res) => {
   if (!res.locals.dbReady) return jsonDbError(res);
   if (!isValidObjectId(req.params.id))
     return res.status(404).json({ ok: false, message: "Not found" });
@@ -190,13 +303,13 @@ router.delete("/categories/:id", async (req, res) => {
   if (!deleted)
     return res.status(404).json({ ok: false, message: "Not found" });
 
-  res.json({ ok: true });
+  return res.json({ ok: true });
 });
 
 /* ---------------- Project CRUD ---------------- */
 
 // GET /admin/projects
-router.get("/projects", async (req, res) => {
+router.get("/projects", requireRole("ADMIN"), async (req, res) => {
   if (!res.locals.dbReady) return renderDbError(res, req);
 
   const projects = await Project.find({})
@@ -204,16 +317,16 @@ router.get("/projects", async (req, res) => {
     .sort({ title: 1 })
     .lean();
 
-  res.render("admin/projects/index", { title: "Admin - Projects", projects });
+  return res.render("admin/projects/index", { title: "Admin - Projects", projects });
 });
 
 // GET /admin/projects/new
-router.get("/projects/new", async (req, res) => {
+router.get("/projects/new", requireRole("ADMIN"), async (req, res) => {
   if (!res.locals.dbReady) return renderDbError(res, req);
 
   const categories = await Category.find({}).sort({ name: 1 }).lean();
 
-  res.render("admin/projects/form", {
+  return res.render("admin/projects/form", {
     title: "New Project",
     project: null,
     categories,
@@ -222,33 +335,36 @@ router.get("/projects/new", async (req, res) => {
 });
 
 // POST /admin/projects
-router.post("/projects", async (req, res) => {
+router.post("/projects", requireRole("ADMIN"), 
+  upload.fields([
+    { name: "featuredImage", maxCount: 1 },
+    { name: "galleryImages", maxCount: 12 },
+  ]), async (req, res) => {
   if (!res.locals.dbReady) return renderDbError(res, req);
 
-  const payload = {
-    slug: req.body.slug,
-    title: req.body.title,
-    tagline: req.body.tagline || "",
-    description: req.body.description,
-    isActive: req.body.isActive === "true",
-    categoryId: req.body.categoryId,
-    tags: repo.parseTagsCsv(req.body.tagsCsv),
-  };
-
-  const stackCsv = req.body.stack || "";
-  payload.stack = stackCsv
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const payload = buildProjectPayload(req);
+  const categories = await Category.find({}).sort({ name: 1 }).lean();
 
   try {
-    await Project.create(payload);
-    res.redirect("/admin/projects");
+    payload.images = buildUploadedImages(req.files, payload.title);
+    
+    const created = await Project.create({
+      slug: payload.slug,
+      title: payload.title,
+      tagline: payload.tagline,
+      description: payload.description,
+      isActive: payload.isActive,
+      categoryId: payload.categoryId,
+      tags: payload.tags,
+      stack: payload.stack,
+      images: payload.images,
+    });
+
+    return res.redirect(`/admin/projects/${created._id}/edit`);
   } catch (e) {
-    const categories = await Category.find({}).sort({ name: 1 }).lean();
-    res.status(400).render("admin/projects/form", {
+    return res.status(400).render("admin/projects/form", {
       title: "New Project",
-      project: { ...payload, tagsCsv: req.body.tagsCsv, stackCsv },
+      project: payload,
       categories,
       error:
         "Could not create project. Check required fields and ensure slug is unique.",
@@ -257,18 +373,20 @@ router.post("/projects", async (req, res) => {
 });
 
 // GET /admin/projects/:id/edit
-router.get("/projects/:id/edit", async (req, res) => {
+router.get("/projects/:id/edit", requireRole("ADMIN"), async (req, res) => {
   if (!res.locals.dbReady) return renderDbError(res, req);
   if (!isValidObjectId(req.params.id)) return renderNotFound(res, req);
 
   const categories = await Category.find({}).sort({ name: 1 }).lean();
   const project = await Project.findById(req.params.id).lean();
+
   if (!project) return renderNotFound(res, req);
 
   project.tagsCsv = (project.tags || []).map((t) => t.name).join(", ");
   project.stackCsv = (project.stack || []).join(", ");
+  project.images = ensureSingleFeatured(project.images || []);
 
-  res.render("admin/projects/form", {
+  return res.render("admin/projects/form", {
     title: "Edit Project",
     project,
     categories,
@@ -277,40 +395,52 @@ router.get("/projects/:id/edit", async (req, res) => {
 });
 
 // POST /admin/projects/:id
-router.post("/projects/:id", async (req, res) => {
+router.post("/projects/:id", requireRole("ADMIN"),
+  upload.fields([
+    { name: "featuredImage", maxCount: 1 },
+    { name: "galleryImages", maxCount: 12 },
+  ]),
+  async (req, res) => {
   if (!res.locals.dbReady) return renderDbError(res, req);
   if (!isValidObjectId(req.params.id)) return renderNotFound(res, req);
 
-  const payload = {
-    slug: req.body.slug,
-    title: req.body.title,
-    tagline: req.body.tagline || "",
-    description: req.body.description,
-    isActive: req.body.isActive === "true",
-    categoryId: req.body.categoryId,
-    tags: repo.parseTagsCsv(req.body.tagsCsv),
-  };
+  const categories = await Category.find({}).sort({ name: 1 }).lean();
+  const payload = buildProjectPayload(req);
+  const project = await Project.findById(req.params.id);
 
-  const stackCsv = req.body.stack || "";
-  payload.stack = stackCsv
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  if (!project) return renderNotFound(res, req);
 
   try {
-    await Project.findByIdAndUpdate(req.params.id, payload, {
-      runValidators: true,
-    });
-    res.redirect("/admin/projects");
+    project.slug = payload.slug;
+    project.title = payload.title;
+    project.tagline = payload.tagline;
+    project.description = payload.description;
+    project.isActive = payload.isActive;
+    project.categoryId = payload.categoryId;
+    project.tags = payload.tags;
+    project.stack = payload.stack;
+
+    const existingImages = normalizeImages(project.images || []);
+    const uploadedImages = buildUploadedImages(req.files, payload.title);
+    project.images = ensureSingleFeatured([...existingImages, ...uploadedImages]);
+
+    await project.save();
+
+    return res.redirect(`/admin/projects/${project._id}/edit`);
   } catch (e) {
-    const categories = await Category.find({}).sort({ name: 1 }).lean();
-    res.status(400).render("admin/projects/form", {
+    return res.status(400).render("admin/projects/form", {
       title: "Edit Project",
       project: {
         _id: req.params.id,
-        ...payload,
-        tagsCsv: req.body.tagsCsv,
-        stackCsv,
+        slug: payload.slug,
+        title: payload.title,
+        tagline: payload.tagline,
+        description: payload.description,
+        isActive: payload.isActive,
+        categoryId: payload.categoryId,
+        tagsCsv: payload.tagsCsv,
+        stackCsv: payload.stackCsv,
+        images: ensureSingleFeatured(project.images || []),
       },
       categories,
       error:
@@ -319,8 +449,55 @@ router.post("/projects/:id", async (req, res) => {
   }
 });
 
+router.post("/projects/:id/images/:index/featured", requireRole("ADMIN"), async (req, res) => {
+  if (!res.locals.dbReady) return renderDbError(res, req);
+  if (!isValidObjectId(req.params.id)) return renderNotFound(res, req);
+
+  const project = await Project.findById(req.params.id);
+  if (!project) return renderNotFound(res, req);
+
+  const index = Number(req.params.index);
+  if (!Number.isInteger(index) || index < 0 || index >= project.images.length) {
+    return renderNotFound(res, req);
+  }
+
+  project.images = ensureSingleFeatured(
+    project.images.map((img, i) => ({
+      path: img.path,
+      alt: img.alt,
+      type: i === index ? "cover" : "gallery",
+      isFeatured: i === index,
+    })),
+  );
+
+  await project.save();
+  return res.redirect(`/admin/projects/${project._id}/edit`);
+});
+
+router.post("/projects/:id/images/:index/delete", requireRole("ADMIN"), async (req, res) => {
+  if (!res.locals.dbReady) return renderDbError(res, req);
+  if (!isValidObjectId(req.params.id)) return renderNotFound(res, req);
+
+  const project = await Project.findById(req.params.id);
+  if (!project) return renderNotFound(res, req);
+
+  const index = Number(req.params.index);
+  if (!Number.isInteger(index) || index < 0 || index >= project.images.length) {
+    return renderNotFound(res, req);
+  }
+
+  const deletedImage = project.images[index];
+  project.images.splice(index, 1);
+  project.images = ensureSingleFeatured(project.images);
+
+  await project.save();
+  removeUploadedFile(deletedImage?.path);
+
+  return res.redirect(`/admin/projects/${project._id}/edit`);
+});
+
 // DELETE /admin/projects/:id
-router.delete("/projects/:id", async (req, res) => {
+router.delete("/projects/:id", requireRole("ADMIN"), async (req, res) => {
   if (!res.locals.dbReady) return jsonDbError(res);
   if (!isValidObjectId(req.params.id))
     return res.status(404).json({ ok: false, message: "Not found" });
@@ -329,7 +506,92 @@ router.delete("/projects/:id", async (req, res) => {
   if (!deleted)
     return res.status(404).json({ ok: false, message: "Not found" });
 
+  normalizeImages(deleted.images || []).forEach((img) => removeUploadedFile(img.path));
   res.json({ ok: true });
+});
+
+/* ---------------- Users ---------------- */
+
+router.get("/users", requireRole("ADMIN"), async (req, res) => {
+  if (!res.locals.dbReady) return renderDbError(res, req);
+
+  const users = await User.find({}).sort({ createdAt: 1, email: 1 }).lean();
+
+  return res.render("admin/users/index", {
+    title: "Admin - Users",
+    users,
+    error: null,
+  });
+});
+
+router.get("/users/:id/edit", requireRole("ADMIN"), async (req, res) => {
+  if (!res.locals.dbReady) return renderDbError(res, req);
+  if (!isValidObjectId(req.params.id)) return renderNotFound(res, req);
+
+  const user = await User.findById(req.params.id).lean();
+  if (!user) return renderNotFound(res, req);
+
+  return res.render("admin/users/form", {
+    title: "Edit User",
+    user,
+    error: null,
+  });
+});
+
+router.post("/users/:id", requireRole("ADMIN"), async (req, res) => {
+  if (!res.locals.dbReady) return renderDbError(res, req);
+  if (!isValidObjectId(req.params.id)) return renderNotFound(res, req);
+
+  const user = await User.findById(req.params.id);
+  if (!user) return renderNotFound(res, req);
+
+  try {
+    user.email = String(req.body.email || "").trim().toLowerCase();
+    user.nickname = String(req.body.nickname || "").trim();
+
+    const requestedRole = String(req.body.role || "").trim().toUpperCase();
+    if (["USER", "MODERATOR", "ADMIN"].includes(requestedRole)) {
+      user.role = requestedRole;
+    }
+
+    const password = String(req.body.password || "").trim();
+    if (password) {
+      user.passwordHash = await bcrypt.hash(password, 10);
+    }
+
+    await user.save();
+
+    return res.redirect("/admin/users");
+  } catch (e) {
+    return res.status(400).render("admin/users/form", {
+      title: "Edit User",
+      user: {
+        _id: req.params.id,
+        email: req.body.email,
+        nickname: req.body.nickname,
+        role: req.body.role,
+      },
+      error: "Could not update user. Make sure the email is unique.",
+    });
+  }
+});
+
+router.post("/users/:id/delete", requireRole("ADMIN"), async (req, res) => {
+  if (!res.locals.dbReady) return renderDbError(res, req);
+  if (!isValidObjectId(req.params.id)) return renderNotFound(res, req);
+
+  if (String(req.user._id) === String(req.params.id)) {
+    const users = await User.find({}).sort({ createdAt: 1, email: 1 }).lean();
+
+    return res.status(400).render("admin/users/index", {
+      title: "Admin - Users",
+      users,
+      error: "You cannot delete your own account.",
+    });
+  }
+
+  await User.findByIdAndDelete(req.params.id);
+  return res.redirect("/admin/users");
 });
 
 module.exports = router;
