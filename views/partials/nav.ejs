@@ -1,4 +1,4 @@
-<button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false">
+<button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="primary-nav" type="button">
   <span></span>
   <span></span>
   <span></span>
@@ -14,15 +14,15 @@
     <a href="/auth/login">Login</a>
     <a href="/auth/register">Register</a>
   <% } else { %>
-    <span><strong><%= currentUser.nickname %></strong></span>
-
-    <% if (currentUser.role === "MODERATOR" || currentUser.role === "ADMIN") { %>
-      <span><%= currentUser.role %></span>
-      <a href="/admin">Admin</a>
-    <% } %>
-
-    <form method="POST" action="/auth/logout" class="inline-form">
-      <button type="submit" class="btn btn-secondary">Logout</button>
-    </form>
+    <div class="nav-user-group">
+      <% if (currentUser.role === "MODERATOR" || currentUser.role === "ADMIN") { %>
+        <a href="/admin">Admin Dashboard</a>
+        <span class="nav-role-badge"><%= currentUser.role %></span>
+      <% } %>
+      <span class="nav-user-name">(<%= currentUser.nickname %>)</span>
+      <form method="POST" action="/auth/logout" class="nav-logout-form">
+        <button type="submit" class="btn btn-secondary nav-logout-btn">Logout</button>
+      </form>
+    </div>
   <% } %>
 </nav>

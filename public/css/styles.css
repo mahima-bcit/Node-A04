@@ -146,21 +146,77 @@ header {
   color: var(--text);
 }
 
-nav {
+#primary-nav {
   display: flex;
+  align-items: center;
   gap: 18px;
   flex-wrap: wrap;
 }
 
-nav a {
+#primary-nav > a,
+#primary-nav > .nav-user-group {
+  display: inline-flex;
+  align-items: center;
+}
+
+#primary-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--text);
   font-weight: 700;
   opacity: 0.9;
 }
 
-nav a:hover {
+#primary-nav a:hover {
   opacity: 1;
   text-decoration: underline;
+}
+
+.nav-user-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: nowrap;
+}
+
+.nav-user-name {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0.2rem;
+  margin: 0;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.nav-role-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(58, 103, 169, 0.1);
+  border: 1px solid rgba(58, 103, 169, 0.18);
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.nav-logout-form {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.nav-logout-btn {
+  min-height: 44px;
+  padding: 10px 16px;
+  white-space: nowrap;
 }
 
 /* Hamburger toggle (hidden on desktop) */
@@ -239,6 +295,31 @@ button:not(.nav-toggle):not(.slider-btn):hover {
 
 .btn-ghost:hover {
   filter: brightness(1.08);
+}
+
+.btn-secondary {
+  background: #eef2f7;
+  color: #1f2937;
+}
+
+.btn-danger {
+  background: #dc2626;
+  color: #fff;
+}
+
+button:disabled,
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+button:disabled:hover,
+.btn:disabled:hover {
+  filter: none;
+  transform: none;
+  opacity: 0.55;
 }
 
 /* Focus ring */
@@ -772,92 +853,7 @@ textarea::placeholder {
 }
 
 /* ----------------------------------------------------------
-   17. RESPONSIVE - Public HTML
-   ---------------------------------------------------------- */
-@media (max-width: 850px) {
-  .hero.hero-split {
-    grid-template-columns: 1fr;
-    margin-top: 28px;
-  }
-
-  .hero-photo {
-    justify-content: flex-start;
-  }
-
-  .sidebar-layout {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 650px) {
-  .hero-photo {
-    display: none;
-  }
-
-  /* Show hamburger, hide nav by default */
-  .nav-toggle {
-    display: flex;
-  }
-
-  #primary-nav {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    flex-direction: column;
-    background: rgba(250, 250, 248, 0.96);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 18px 16px;
-    gap: 4px;
-  }
-
-  #primary-nav.open {
-    display: flex;
-  }
-
-  #primary-nav a {
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 16px;
-  }
-
-  #primary-nav a:last-child {
-    border-bottom: none;
-  }
-
-  /* Hamburger → X animation */
-  .nav-toggle.open span:nth-child(1) {
-    transform: translateY(7px) rotate(45deg);
-  }
-  .nav-toggle.open span:nth-child(2) {
-    opacity: 0;
-  }
-  .nav-toggle.open span:nth-child(3) {
-    transform: translateY(-7px) rotate(-45deg);
-  }
-
-  /* Search bar stacks vertically */
-  .searchbar {
-    flex-wrap: wrap;
-    border-radius: 16px;
-    padding: 10px 12px;
-  }
-
-  .searchbar input {
-    min-width: 0;
-    width: 100%;
-  }
-
-  .searchbar button {
-    width: 100%;
-    text-align: center;
-  }
-}
-
-/* ----------------------------------------------------------
-   18. ADMIN CMS
+   17. ADMIN CMS
    ---------------------------------------------------------- */
 .admin-shell {
   max-width: 1100px;
@@ -1022,16 +1018,6 @@ textarea::placeholder {
   text-align: center;
 }
 
-.btn-secondary {
-  background: #eef2f7;
-  color: #1f2937;
-}
-
-.btn-danger {
-  background: #dc2626;
-  color: #fff;
-}
-
 .admin-form-header {
   display: flex;
   justify-content: space-between;
@@ -1087,6 +1073,8 @@ textarea::placeholder {
 }
 
 .admin-form input[type="text"],
+.admin-form input[type="email"],
+.admin-form input[type="password"],
 .admin-form select,
 .admin-form textarea {
   width: 100%;
@@ -1113,6 +1101,8 @@ textarea::placeholder {
 }
 
 .admin-form input[type="text"]:focus,
+.admin-form input[type="email"]:focus,
+.admin-form input[type="password"]:focus,
 .admin-form select:focus,
 .admin-form textarea:focus {
   border-color: var(--accent);
@@ -1192,67 +1182,9 @@ textarea::placeholder {
   color: var(--accent);
 }
 
-button:disabled,
-.btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-button:disabled:hover,
-.btn:disabled:hover {
-  filter: none;
-  transform: none;
-  opacity: 0.55;
-}
-
 /* ----------------------------------------------------------
-   19. RESPONSIVE - Admin HTML
+   18. PROJECT IMAGES & GALLERY
    ---------------------------------------------------------- */
-@media (max-width: 700px) {
-  .admin-project-right {
-    align-items: flex-start;
-  }
-
-  .admin-project-top {
-    flex-direction: column;
-  }
-}
-
-@media (max-width: 760px) {
-  .admin-form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .form-field-full {
-    grid-column: auto;
-  }
-
-  .admin-form-actions {
-    justify-content: stretch;
-  }
-
-  .admin-form-actions .btn,
-  .admin-form-actions button {
-    width: 100%;
-  }
-}
-
-@media (max-width: 900px) {
-  .admin-dashboard-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ----------------------------------------------------------
-   20. A04 CSS
-   (TODO: Still need to put them at the right section above)
-   ---------------------------------------------------------- */
-.inline-form {
-  display: inline;
-}
-
 .stack-top-space {
   margin-top: 1rem;
 }
@@ -1301,4 +1233,137 @@ button:disabled:hover,
 
 .meta-top-half {
   margin-top: 0.5rem;
+}
+
+/* ----------------------------------------------------------
+   19. RESPONSIVE – PUBLIC
+   ---------------------------------------------------------- */
+@media (max-width: 850px) {
+  .hero.hero-split {
+    grid-template-columns: 1fr;
+    margin-top: 28px;
+  }
+
+  .hero-photo {
+    justify-content: flex-start;
+  }
+
+  .sidebar-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 650px) {
+  .hero-photo {
+    display: none;
+  }
+
+  /* Show hamburger, hide nav by default */
+  .nav-toggle {
+    display: flex;
+  }
+
+  #primary-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background: rgba(250, 250, 248, 0.96);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 18px 16px;
+    gap: 4px;
+  }
+
+  #primary-nav.open {
+    display: flex;
+  }
+
+  #primary-nav a {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 16px;
+  }
+
+  #primary-nav a:last-child {
+    border-bottom: none;
+  }
+
+  /* Hamburger → X animation */
+  .nav-toggle.open span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  .nav-toggle.open span:nth-child(2) {
+    opacity: 0;
+  }
+  .nav-toggle.open span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  /* Search bar stacks vertically */
+  .searchbar {
+    flex-wrap: wrap;
+    border-radius: 16px;
+    padding: 10px 12px;
+  }
+
+  .searchbar input {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .searchbar button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .nav-user-group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .nav-user-name {
+    min-height: auto;
+  }
+}
+
+/* ----------------------------------------------------------
+   20. RESPONSIVE – ADMIN
+   ---------------------------------------------------------- */
+@media (max-width: 700px) {
+  .admin-project-right {
+    align-items: flex-start;
+  }
+
+  .admin-project-top {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-field-full {
+    grid-column: auto;
+  }
+
+  .admin-form-actions {
+    justify-content: stretch;
+  }
+
+  .admin-form-actions .btn,
+  .admin-form-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
 }
