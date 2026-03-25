@@ -5,14 +5,12 @@ const tagSchema = new mongoose.Schema(
   { _id: false },
 );
 
-const imageSchema = new mongoose.Schema(
-  {
-    path: String,
-    alt: String,
-    type: String,
-  },
-  { _id: false },
-);
+const imageSchema = new mongoose.Schema({
+  path: { type: String, required: true, trim: true },
+  alt: { type: String, default: "" },
+  type: { type: String, default: "gallery" },
+  isFeatured: { type: Boolean, default: false },
+});
 
 const projectSchema = new mongoose.Schema(
   {

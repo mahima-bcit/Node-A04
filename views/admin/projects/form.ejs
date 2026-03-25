@@ -4,7 +4,7 @@
       <p class="admin-eyebrow">Admin</p>
       <h1><%= project ? "Edit Project" : "New Project" %></h1>
       <p class="admin-subtitle">
-        <%= project ? "Update the project details and save your changes." : "Create a new project entry for your portfolio." %>
+        <%= project ? "Update the project details, upload images, and save your changes." : "Create a new project entry for your portfolio." %>
       </p>
     </div>
 
@@ -20,6 +20,7 @@
   <form
     class="admin-form card"
     method="POST"
+    enctype="multipart/form-data"
     action="<%= project ? '/admin/projects/' + project._id : '/admin/projects' %>"
   >
     <div class="admin-form-grid">
@@ -113,6 +114,18 @@
         />
         <p class="field-help">Optional. Comma-separated values.</p>
       </div>
+
+      <div class="form-field form-field-full">
+        <label for="featuredImage">Featured Image Upload</label>
+        <input id="featuredImage" name="featuredImage" type="file" accept="image/*" />
+        <p class="field-help">Optional. This will be used as the card thumbnail and project hero.</p>
+      </div>
+
+      <div class="form-field form-field-full">
+        <label for="galleryImages">Gallery Images Upload</label>
+        <input id="galleryImages" name="galleryImages" type="file" accept="image/*" multiple />
+        <p class="field-help">Optional. These appear below the project content on the detail page.</p>
+      </div>
     </div>
 
     <div class="admin-form-actions">
@@ -122,4 +135,51 @@
       </button>
     </div>
   </form>
+
+  <% if (project && project.images && project.images.length) { %>
+    <section class="card admin-images-section">
+      <h2 class="admin-section-title">Current Images</h2>
+
+      <div class="admin-project-list">
+        <% project.images.forEach(function(img, index) { %>
+          <article class="admin-project-card card">
+            <div class="admin-project-top">
+              <div class="admin-project-main">
+                <h3 class="admin-project-title">
+                  <%= (img.isFeatured || img.type === "cover") ? "Featured Image" : "Gallery Image" %>
+                </h3>
+                <p class="admin-project-slug"><%= img.path %></p>
+
+                <% if (img.isFeatured || img.type === "cover") { %>
+                  <span class="status-badge is-active">Featured</span>
+                <% } %>
+              </div>
+
+              <div class="admin-project-right">
+                <div class="admin-actions">
+                  <% if (!(img.isFeatured || img.type === "cover")) { %>
+                    <form method="POST" action="/admin/projects/<%= project._id %>/images/<%= index %>/featured">
+                      <button type="submit" class="btn btn-secondary">Set Featured</button>
+                    </form>
+                  <% } %>
+
+                  <form
+                    method="POST"
+                    action="/admin/projects/<%= project._id %>/images/<%= index %>/delete"
+                    onsubmit="return confirm('Delete this image?');">
+                    <button type="submit" class="btn btn-danger">Delete Image</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <img
+              src="<%= img.path %>"
+              alt="<%= img.alt || project.title %>"
+              class="admin-image-preview" />
+          </article>
+        <% }) %>
+      </div>
+    </section>
+  <% } %>
 </section>

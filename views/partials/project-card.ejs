@@ -1,5 +1,11 @@
-<% 
-const cover = (project.images || []).find(i => i.type === "cover");
+<%
+  const images = project.images || [];
+  const cover =
+    images.find(i => i.isFeatured) ||
+    images.find(i => i.type === "cover") ||
+    images[0] ||
+    null;
+
   const category = project.categoryId && project.categoryId.name ? project.categoryId : null;
   const tags = (project.tags || [])
     .map(t => (typeof t === "string" ? t : t.name))
@@ -9,7 +15,7 @@ const cover = (project.images || []).find(i => i.type === "cover");
 
 <article class="project-card card">
   <% if (cover) { %>
-    <img class="thumb" src="<%= cover.path %>" alt="<%= cover.alt %>">
+    <img class="thumb" src="<%= cover.path %>" alt="<%= cover.alt || project.title %>">
   <% } %>
 
   <div class="body">
