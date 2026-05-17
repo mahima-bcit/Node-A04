@@ -1,95 +1,46 @@
-# Node A04 — Portfolio Launchpad (Passport Auth + RBAC + Project Image Uploads)
+# Portfolio CMS
 
-This project continues the A03 Portfolio Launchpad and upgrades it into a role-based portfolio CMS using **Passport.js**, **session-based authentication**, **MongoDB Atlas + Mongoose**, and **project image management**.
+A full-stack portfolio content management system — server-rendered with EJS, backed by MongoDB Atlas, with session-based auth, three-tier RBAC, and a project image upload pipeline.
 
----
-
-## Features
-
-### Public site
-- Home, About, Projects, Project Details, and Contact pages
-- Server-rendered with EJS
-- Project list supports search and tag filtering
-- Project details page shows:
-  - featured image as hero image
-  - gallery images below project content
-
-### Authentication
-- Local authentication with Passport.js
-- Session-based login/logout
-- Password hashing with bcrypt
-- Registration flow for new users
-- Registration requires:
-  - email
-  - nickname
-  - password
-
-### Role-Based Access Control
-- `USER`
-  - can register, log in, log out, and use public routes
-  - cannot access admin routes
-- `MODERATOR`
-  - can access `/admin`
-  - can view contact submissions
-  - can toggle contact submissions read/unread
-  - cannot delete contacts
-  - cannot manage categories, projects, images, or users
-- `ADMIN`
-  - full access to admin dashboard and admin actions
-  - can manage contacts, categories, projects, project images, and users
-  - cannot delete their own account
-
-### Admin CMS
-- Contacts management
-- Categories CRUD
-- Projects CRUD
-- Project image upload and management
-- User management for admins
-
-### Security / Logging
-- Insufficient privilege attempts are logged with:
-  - timestamp
-  - user id / role if known
-  - method
-  - path
-  - required role
-  - IP best-effort
+Built solo for a BCIT course. The spec defined the feature list — every architectural decision (data model, middleware stack, audit logging) was mine to figure out.
 
 ---
 
-## Tech Stack
-- Node.js
-- Express
-- EJS
-- express-ejs-layouts
-- MongoDB Atlas
-- Mongoose
-- Passport.js
-- passport-local
-- express-session
-- connect-mongo
-- bcrypt
-- multer
-- CSS
+## What's interesting about it
+
+- **Three-tier RBAC with custom middleware.** `USER`, `MODERATOR`, and `ADMIN` roles with distinct permission sets enforced by route-level middleware in `src/middleware/auth.js`. Moderators can read contacts and toggle read state, but cannot delete or touch any other resource. Admins get full CMS access except they cannot delete their own account.
+
+- **Session-based auth via Passport.js + bcrypt.** Passwords are hashed with bcrypt before storage. Sessions are persisted to MongoDB via `connect-mongo` so they survive server restarts. Passport's local strategy handles the login flow.
+
+- **Image upload pipeline with featured/gallery management.** Multer handles multipart uploads; files land in `public/uploads/` and paths are stored in MongoDB as site-root relative strings. Each project can have one featured image (used as the hero and card thumbnail) and any number of gallery images. Admins can promote any gallery image to featured or delete images individually.
+
+- **Safe-delete guards on referenced data.** Attempting to delete a category that has projects referencing it returns a JSON error instead of orphaning records. The admin UI disables the delete button when the reference count is non-zero.
+
+- **Security audit logging on access denials.** Any request that hits an insufficient-privilege check is logged with timestamp, user ID, role, HTTP method, path, required role, and best-effort IP. This gives a traceable record of unauthorized access attempts without reaching for a third-party service.
+
+- **Dual rendering modes.** HTML routes serve server-rendered EJS views; a parallel `/api/*` namespace returns JSON for the same data, with consistent 404 handling (JSON 404 for unknown API routes, HTML 404 page otherwise).
 
 ---
 
-## Setup
+## Tech stack
 
-### 1) Install dependencies
+Auth via Passport + bcrypt with session persistence to MongoDB. Image handling via Multer. Server-rendered EJS with a parallel JSON API.
+
+---
+
+## Running locally
+
+### 1. Install dependencies
+
 ```bash
 npm install
 ```
 
-### 2) Create `.env`
-
-Create a `.env` file in the project root:
+### 2. Create `.env`
 
 ```env
 MONGODB_URI="YOUR_ATLAS_CONNECTION_STRING"
-
 MONGODB_DB_NAME="node-a04"
-
 SESSION_SECRET="YOUR_SESSION_SECRET"
 
 PERSONAL_ADMIN_EMAIL="YOUR_PERSONAL_ADMIN_EMAIL"
@@ -109,208 +60,107 @@ TEST_ADMIN_NICKNAME="YOUR_TEST_ADMIN_NICKNAME"
 TEST_ADMIN_PASSWORD="YOUR_TEST_ADMIN_PASSWORD"
 ```
 
-Important: 
+Do not commit `.env`. It should be in `.gitignore`.
 
-- Do not commit `.env`
-- `.env` should be ignored by Git
-- The credentials for the three extra test users are included in `.env`
+### 3. MongoDB Atlas setup
 
-### 3) MongoDB Atlas checklist
+- Create a cluster and database user
+- Add your IP to the access list (or use `0.0.0.0/0` for development)
+- Paste the connection string into `.env`
 
-In MongoDB Atlas:
-- Create a cluster
-- Create a database user (username/password)
-- Add your current IP to the IP Access List (or temporarily allow `0.0.0.0/0` for development)
-- Ensure your connection string is correct in `.env`
+### 4. Import project data and seed users
 
-### 4) Import initial project data
 ```bash
-npm run import-projects
+npm run import-projects   # imports data/projects.json into MongoDB
+npm run seed-users        # creates one ADMIN, one MODERATOR, two test accounts
 ```
 
-This imports `data/projects.json` into MongoDB.
+### 5. Run
 
-### 5) Seed required users
-```bash
-npm run seed-users
-```
-
-This creates:
-- your personal ADMIN
-- one test USER
-- one test MODERATOR
-- one additional test ADMIN
-
-### 6) Run the app
 ```bash
 npm run dev
 ```
 
-App runs at:
-
-- `http://localhost:3000/`
+App runs at `http://localhost:3000/`
 
 ---
 
-## Data Models (Mongoose)
+## Data model
 
 ### User (`users`)
-- `email` (string, required, unique)
-- `nickname` (string, required)
-- `passwordHash` (string, required)
-- `role` (string, required)
-  - `"USER"`
-  - `"MODERATOR"`
-  - `"ADMIN"`
-- `lastLogin` (Date)
+| Field | Type | Notes |
+|---|---|---|
+| `email` | string | required, unique |
+| `nickname` | string | required |
+| `passwordHash` | string | bcrypt hash |
+| `role` | `"USER"` \| `"MODERATOR"` \| `"ADMIN"` | required |
+| `lastLogin` | Date | |
 
 ### Category (`categories`)
-- `name` (string, required)
-- `slug` (string, required, unique, URL-safe)
-- `description` (string, optional)
+| Field | Type | Notes |
+|---|---|---|
+| `name` | string | required |
+| `slug` | string | required, unique, URL-safe |
+| `description` | string | optional |
 
 ### Project (`projects`)
-- `slug` (string, required, unique, URL-safe)
-- `title` (string, required)
-- `description` (string, required)
-- `isActive` (boolean, required)
-- `tags` (embedded) - array of `{ name }`
-- `categoryId` (required) - ObjectId ref Category
-- `tagline` (string, optional)
-- `stack` (string array, optional)
-- `images` (embedded) - image objects
-  - `path`
-  - `alt`
-  - `type`
-  - `isFeatured`
-- `dates`
-  - `created`
-  - `updated`
+| Field | Type | Notes |
+|---|---|---|
+| `slug` | string | required, unique, URL-safe |
+| `title` | string | required |
+| `description` | string | required |
+| `isActive` | boolean | controls public visibility |
+| `tags` | `[{ name }]` | embedded array |
+| `categoryId` | ObjectId | ref Category |
+| `tagline` | string | optional |
+| `stack` | string[] | optional |
+| `images` | `[{ path, alt, type, isFeatured }]` | embedded array |
+| `dates.created` | Date | |
+| `dates.updated` | Date | |
 
 ### Contact (`contacts`)
-- `name`  (string, required)
-- `email` (string, required)
-- `message` (string, required)
-- `postedDate` (Date, required)
-- `isRead` (boolean, required, default false)
+| Field | Type | Notes |
+|---|---|---|
+| `name` | string | required |
+| `email` | string | required |
+| `message` | string | required |
+| `postedDate` | Date | required |
+| `isRead` | boolean | default false |
 
 ---
 
 ## Routes
 
-### Authentication
-- `GET /auth/login`
-- `POST /auth/login`
+### Auth
+- `GET /auth/login` · `POST /auth/login`
 - `POST /auth/logout`
-- `GET /auth/register`
-- `POST /auth/register`
+- `GET /auth/register` · `POST /auth/register` (creates `USER` role)
 
-Registration creates a normal `USER` account.
+### Public
+- `GET /` · `/about` · `/contact` · `POST /contact`
+- `GET /projects` — supports `?q=`, `?tag=`, and combined
+- `GET /projects/category/:slug`
+- `GET /projects/:slug` — active projects only
 
-### Public (HTML)
-- `GET /` → home
-- `GET /about` → about
-- `GET /projects` → project list
-  Query params:
-  - `?q=term` : search
-  - `?tag=tagName` : tag filter
-  - `?q=term&tag=tagName` : combined
-- `GET /projects/category/:slug` → projects by category slug
-- `GET /projects/:slug` → project detail (active-only)
-- `GET /contact` → contact form
-- `POST /contact` → saves to MongoDB, renders contact-success on success, re-renders contact form on error
+### Admin — MODERATOR + ADMIN
+- `GET /admin`
+- `GET /admin/contacts`
+- `PATCH /admin/contacts/:id/read`
 
-### Admin
+### Admin — ADMIN only
+- `DELETE /admin/contacts/:id`
+- Full CRUD: `/admin/categories`, `/admin/projects`, `/admin/users`
+- Image routes: upload featured/gallery images, set featured, delete
 
-#### MODERATOR + ADMIN
-- `GET /admin` → dashboard
-- `GET /admin/contacts` → list all contacts
-- `PATCH /admin/contacts/:id/read` → toggle read/unread (JSON)
-
-#### ADMIN Only
-- `DELETE /admin/contacts/:id` → delete contact (JSON)
-
-### Category CRUD
-- `GET /admin/categories` → list categories + project reference count (delete disabled if count > 0)
-- `GET /admin/categories/new`
-- `POST /admin/categories`
-- `GET /admin/categories/:id/edit`
-- `POST /admin/categories/:id` → update then redirect
-- `DELETE /admin/categories/:id` → safe delete (JSON)
-  - server refuses deletion if referenced by any projects
-
-### Project CRUD
-- `GET /admin/projects` → list projects (shows isActive + tags + category)
-- `GET /admin/projects/new`
-- `POST /admin/projects`
-- `GET /admin/projects/:id/edit`
-- `POST /admin/projects/:id` → update then redirect
-- `DELETE /admin/projects/:id` → delete (JSON)
-
-Project form supports:
-- choosing exactly one category (`categoryId`)
-- tags input as CSV -> stored as embedded `{ name }`
-- setting `isActive` true/false
-
-### Project Images
-- Upload featured images
-- Upload gallery images
-- Set featured image
-- Delete images
-
-### Users
-- `GET /admin/users`
-- `GET /admin/users/:id/edit`
-- `POST /admin/users/:id`
-- `POST /admin/users/:id/delete`
-
-Admins cannot delete their own account.
+### API (JSON)
+- `GET /api/projects` — active only, supports `?q=` and `?tag=`
+- `GET /api/projects/:id`
+- `GET /api/projects/category/:slug`
+- `GET /api/categories`
 
 ---
 
-## API (JSON)
-
-### Projects
-- `GET /api/projects` → active projects only
-  - supports `?q=` and `?tag=`
-- `GET /api/projects/:id` → project detail or JSON 404
-- `GET /api/projects/category/:slug` → active projects for category slug
-
-### Categories
-- `GET /api/categories` → read-only list of categories
-
----
-
-## 404 Behavior
-- Unknown `/api/*` routes return JSON 404
-- Unknown non-api routes render the HTML 404 page
-
----
-
-## Image Upload Rules
-- Uploaded files are stored on disk in `public/uploads`
-- Paths stored in MongoDB are site-root relative
-
-Public image behavior:
-- project cards use the featured image as thumbnail
-- project detail page uses the featured image as hero image
-- remaining images appear in the gallery section
-
----
-
-## Navbar Behavior
-
-The shared layout navbar includes:
-- Login link when logged out
-- Register link when logged out
-- Logout button when logged in
-- Current user nickname when logged in
-- Current role label for `MODERATOR` and `ADMIN`
-- Admin link for `MODERATOR` and `ADMIN`
-
----
-
-## Project Structure
+## Project structure
 
 ```
 /data
@@ -318,10 +168,10 @@ The shared layout navbar includes:
 
 /public
   /css/styles.css
-  /images/...
+  /images/
   /js/main.js
   /js/admin.js
-  /uploads
+  /uploads/
 
 /scripts
   import-projects.js
@@ -332,61 +182,29 @@ The shared layout navbar includes:
     passport.js
   /lib
     mongo.js
-    projects.repository.js  
+    projects.repository.js
   /middleware
     auth.js
   /models
-    Category.js
-    Project.js
-    Contact.js
-    User.js
+    Category.js  Contact.js  Project.js  User.js
   /routes
-    pages.routes.js
-    api.routes.js
-    admin.routes.js
-    auth.routes.js
-  
-/views
-  /auth
-    login.ejs
-    register.ejs
-  /layouts
-    layout-full.ejs
-    layout-sidebar.ejs
-  /partials
-    nav.ejs
-    footer.ejs
-    project-card.ejs
-    other-projects-list.ejs
-  /admin
-    index.ejs
-    contacts/index.ejs
-    categories/index.ejs
-    categories/form.ejs
-    projects/index.ejs
-    projects/form.ejs
-    users/index.ejs
-    users/form.ejs
-  index.ejs
-  about.ejs
-  projects.ejs
-  project-details.ejs
-  contact.ejs                                       
-  contact-success.ejs
-  403.ejs
-  404.ejs
-  500.ejs
-  db-error.ejs
+    admin.routes.js  api.routes.js  auth.routes.js  pages.routes.js
 
-README.md
-package.json
-server.js
-.env
-.env.example
+/views
+  /admin
+    contacts/  categories/  projects/  users/
+  /auth
+    login.ejs  register.ejs
+  /layouts
+    layout-full.ejs  layout-sidebar.ejs
+  /partials
+    nav.ejs  footer.ejs  project-card.ejs
+
+server.js  package.json  .env.example
 ```
 
 ---
 
-## License & Attribution
+## Attribution
 
-This project contains student modifications built on the provided Node2Know starter materials by **Joshua Solomon**, under **Node2Know-LEARN-1.0**.
+Built on the Node2Know starter materials by **Joshua Solomon** (Node2Know-LEARN-1.0). The starter provided the project scaffold; auth, RBAC, image management, and all data models were added as part of this assignment.
